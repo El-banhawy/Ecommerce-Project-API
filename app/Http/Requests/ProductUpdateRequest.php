@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class ProductUpdateRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, mixed>
+     */
+    public function rules()
+    {
+        $product = $this->route('product');
+        return [
+            'name' => ['required', Rule::unique('products', 'name')->ignore($product), 'min:6'],
+            'description' => ['required'],
+            'price' => ['required', 'numeric'],
+            'categories' => ['required', Rule::exists('categories', 'id')],
+            'quantity' => ['required', 'numeric'],
+            'image' => ['sometimes', 'image'],
+            'featured' => ['required', 'boolean'],
+        ];
+    }
+
+    protected function prepareForValidation()
+    {
+        if (is_string($this->featured)) {
+            $this->merge([
+                'featured' => $this->featured === 'false' ? false : ($this->featured === 'true' ? true : 'dummy'),
+            ]);
+        }
+    }
+}
